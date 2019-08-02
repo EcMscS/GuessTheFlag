@@ -142,11 +142,13 @@ class MainVC: UIViewController {
     fileprivate func updateScore() {
         //Show score in the navigation bar
         let scoreButton = UIBarButtonItem.init(title: "Score: \(score)", style: .plain, target: self, action: nil)
-        scoreButton.isEnabled = false
-        scoreButton.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.black], for: .disabled)
+        scoreButton.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.black], for: .normal)
         scoreButton.tintColor = UIColor.black
+        scoreButton.target = self
+        scoreButton.action = #selector(showScore)
         navigationItem.rightBarButtonItem = scoreButton
         
+    
         let questionButton = UIBarButtonItem.init(title: "Q: \(questionCount)/10", style: .plain, target: self, action: nil)
         questionButton.isEnabled = false
         questionButton.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.black], for: .disabled)
@@ -170,7 +172,7 @@ class MainVC: UIViewController {
     }
     
     fileprivate func alertAfterAnsweringQuestions() {
-        let questionsAlert = UIAlertController(title: "Game Completed", message: "You got \(Double(totalCorrectAnswer) / Double(questionCount) * 100.0)% of the questions correct. Your final score is \(score)", preferredStyle: .alert)
+        let questionsAlert = UIAlertController(title: "Game Completed", message: "You got \(percentAnswered())% of the questions correct. Your final score is \(score)", preferredStyle: .alert)
         questionsAlert.addAction(UIAlertAction(title: "New Game", style: .default, handler: askQuestion))
         present(questionsAlert, animated: true)
         
@@ -185,6 +187,17 @@ class MainVC: UIViewController {
         updateScore()
         
         questionCount = 0
+    }
+    
+    fileprivate func percentAnswered() -> String {
+        let percent = Double(totalCorrectAnswer) / Double(questionCount) * 100.0
+        return String(format: "%.2f", percent)
+    }
+    
+    @objc fileprivate func showScore() {
+        let alertScore = UIAlertController(title: "Current Score", message: "Each correct answer is +1 and each wrong answer is -1.\n Currently you answered \(percentAnswered())% correctly.\n Your current score is \(score)", preferredStyle: .alert)
+        alertScore.addAction(UIAlertAction(title: "Continue", style: .default, handler: nil))
+        present(alertScore, animated: true)
     }
 
 }
