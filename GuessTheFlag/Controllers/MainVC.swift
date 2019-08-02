@@ -6,6 +6,11 @@
 //  Copyright © 2019 Jeffrey Lai. All rights reserved.
 //
 
+//Challenge:
+//1) Try showing the player's score in the navigation bar, alongside the flag to guess.
+//2) Keep track of how many questions have been asked, and show one final alert after they have answered 10.
+//3) When someone chooses the wrong flag, tell them their mistake in your alert message
+
 import UIKit
 
 class MainVC: UIViewController {
@@ -51,6 +56,8 @@ class MainVC: UIViewController {
     var countries = [String]()
     var score = 0
     var correctAnswer = 0
+    var questionCount = 0
+    var totalCorrectAnswer = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -82,6 +89,9 @@ class MainVC: UIViewController {
         button1.addTarget(self, action: #selector(buttonTapped(sender:)), for: .touchUpInside)
         button2.addTarget(self, action: #selector(buttonTapped(sender:)), for: .touchUpInside)
         button3.addTarget(self, action: #selector(buttonTapped(sender:)), for: .touchUpInside)
+        
+        //Increment Question Count
+        questionCount += 1
     }
     
     func setupViews() {
@@ -113,15 +123,68 @@ class MainVC: UIViewController {
         if sender.tag == correctAnswer {
             title = "Correct"
             score += 1
+            totalCorrectAnswer += 1
         } else {
             title = "Wrong"
             score -= 1
         }
         
-        let answerAlert = UIAlertController(title: title, message: "Your Score is \(score)", preferredStyle: .alert)
-        answerAlert.addAction(UIAlertAction(title: "Coninue", style: .default, handler: askQuestion))
+        updateScore()
         
-        present(answerAlert, animated: true)
+        if (questionCount % 10) == 0 {
+            alertAfterAnsweringQuestions()
+        } else {
+            alertAfterAnswer(answer: title)
+        }
+        
+    }
+    
+    fileprivate func updateScore() {
+        //Show score in the navigation bar
+        let scoreButton = UIBarButtonItem.init(title: "Score: \(score)", style: .plain, target: self, action: nil)
+        scoreButton.isEnabled = false
+        scoreButton.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.black], for: .disabled)
+        scoreButton.tintColor = UIColor.black
+        navigationItem.rightBarButtonItem = scoreButton
+        
+        let questionButton = UIBarButtonItem.init(title: "Q: \(questionCount)/10", style: .plain, target: self, action: nil)
+        questionButton.isEnabled = false
+        questionButton.setTitleTextAttributes([NSAttributedString.Key.foregroundColor: UIColor.black], for: .disabled)
+        questionButton.tintColor = UIColor.black
+        navigationItem.leftBarButtonItem = questionButton
+    }
+    
+    fileprivate func alertAfterAnswer(answer: String) {
+
+        if answer == "Correct" {
+            let answerAlert = UIAlertController(title: answer, message: "Your current score is \(score)", preferredStyle: .alert)
+            answerAlert.addAction(UIAlertAction(title: "Coninue", style: .default, handler: askQuestion))
+            present(answerAlert, animated: true)
+        } else if answer == "Wrong" {
+            let answerAlert = UIAlertController(title: answer, message: "\(title!) is flag number \(correctAnswer + 1).\n Your current score is \(score)", preferredStyle: .alert)
+            answerAlert.addAction(UIAlertAction(title: "Coninue", style: .default, handler: askQuestion))
+            present(answerAlert, animated: true)
+        }
+        
+
+    }
+    
+    fileprivate func alertAfterAnsweringQuestions() {
+        let questionsAlert = UIAlertController(title: "Game Completed", message: "You got \(Double(totalCorrectAnswer) / Double(questionCount) * 100.0)% of the questions correct. Your final score is \(score)", preferredStyle: .alert)
+        questionsAlert.addAction(UIAlertAction(title: "New Game", style: .default, handler: askQuestion))
+        present(questionsAlert, animated: true)
+        
+        resetGame()
+    }
+    
+    fileprivate func resetGame() {
+        //Reset
+        score = 0
+        totalCorrectAnswer = 0
+        
+        updateScore()
+        
+        questionCount = 0
     }
 
 }
